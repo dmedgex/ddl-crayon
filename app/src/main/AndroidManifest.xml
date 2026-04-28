@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:name=".CrayonApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/plain_app_icon"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/plain_app_icon_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TrickcalCrayon">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.TrickcalCrayon">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

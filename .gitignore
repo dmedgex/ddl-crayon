@@ -1,0 +1,25 @@
+# Signing keys and local secrets
+keystore.properties
+*.jks
+*.keystore
+
+# Local SDK path
+local.properties
+
+# Gradle
+.gradle/
+build/
+*/build/
+
+# Kotlin/Java
+*.class
+out/
+.kotlin/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# OS/editor noise
+Thumbs.db
+.DS_Store

@@ -1,0 +1,13 @@
+@echo off
+setlocal
+cd /d "%~dp0.."
+python tools\convert_board_layers_csv.py
+if errorlevel 1 (
+  echo.
+  echo ??????????????? CSV?
+  pause
+  exit /b 1
+)
+echo.
+echo ???????? app\src\main\assets\character_boards.json
+pause

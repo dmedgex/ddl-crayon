@@ -27,3 +27,9 @@ data class CharacterFilter(
     val matchMode: FilterMatchMode =
         FilterMatchMode.ANY_SELECTED_TIER_AND_ANY_SELECTED_ATTRIBUTE_SAME_LAYER,
 )
+
+data class CharacterListPreferences(
+    val filter: CharacterFilter = CharacterFilter(),
+    val browseMode: BrowseMode = BrowseMode.DETAIL,
+    val displayMode: CharacterDisplayMode = CharacterDisplayMode.DETAIL,
+)

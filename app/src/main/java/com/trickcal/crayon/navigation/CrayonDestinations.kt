@@ -25,9 +25,27 @@ sealed class TopLevelDestination(
     )
 }
 
+object SettingsDestination {
+    const val route = "settings"
+    const val label = "设置"
+    val icon: ImageVector = Icons.Filled.Settings
+}
+
 object CharacterDetailDestination {
     const val ARG_CHARACTER_ID = "characterId"
     const val route = "characters/detail/{$ARG_CHARACTER_ID}"
 
     fun createRoute(characterId: String): String = "characters/detail/${Uri.encode(characterId)}"
+}
+
+object PetDispatchDestination {
+    const val route = "labs/pet-dispatch"
+}
+
+object DamageCalculatorDestination {
+    const val route = "labs/damage-calculator"
+}
+
+object BattlePowerCalculatorDestination {
+    const val route = "labs/battle-power-calculator"
 }

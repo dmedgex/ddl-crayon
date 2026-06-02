@@ -10,7 +10,7 @@ import java.net.URL
 data class AppUpdateInfo(
     val versionName: String,
     val versionCode: Long?,
-    val downloadUrl: String?,
+    val updateUrl: String?,
     val releaseNotes: String?,
 )
 
@@ -68,7 +68,8 @@ class AppUpdateRepository {
         val versionName = payload.firstNonBlank("versionName", "version_name", "tag_name", "name")
             ?: error("更新数据缺少版本号字段")
         val versionCode = payload.firstLong("versionCode", "version_code")
-        val downloadUrl = payload.firstNonBlank(
+        val updateUrl = payload.firstNonBlank(
+            "url",
             "downloadUrl",
             "download_url",
             "pageUrl",
@@ -80,7 +81,7 @@ class AppUpdateRepository {
         return AppUpdateInfo(
             versionName = versionName,
             versionCode = versionCode,
-            downloadUrl = downloadUrl,
+            updateUrl = updateUrl,
             releaseNotes = releaseNotes,
         )
     }

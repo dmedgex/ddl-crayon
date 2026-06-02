@@ -8,9 +8,11 @@ import com.trickcal.crayon.model.BoardTier
 import com.trickcal.crayon.model.BrowseMode
 import com.trickcal.crayon.model.CharacterDisplayMode
 import com.trickcal.crayon.model.CharacterFilter
+import com.trickcal.crayon.model.CharacterListPreferences
 import com.trickcal.crayon.model.CharacterProfile
 import com.trickcal.crayon.model.PersonalityType
 import com.trickcal.crayon.repository.CrayonRepository
+import com.trickcal.crayon.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -52,13 +54,17 @@ data class CharacterListUiState(
 
 class CharacterListViewModel(
     private val repository: CrayonRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
     private val filterState = MutableStateFlow(CharacterFilter())
     private val browseModeState = MutableStateFlow(BrowseMode.DETAIL)
     private val displayModeState = MutableStateFlow(CharacterDisplayMode.DETAIL)
+    private val sortingLitSlotsState = MutableStateFlow<Set<String>?>(null)
     private val selectedCharacterId = MutableStateFlow<String?>(null)
     private val batchPaintDialogVisible = MutableStateFlow(false)
     private val batchPaintSelectionState = MutableStateFlow(BatchPaintSelection())
+    private var latestLitSlots: Set<String> = emptySet()
+    private var hasLoadedLitSlots = false
     private val batchDialogState =
         combine(batchPaintDialogVisible, batchPaintSelectionState) { isVisible, selection ->
             BatchDialogState(
@@ -74,19 +80,36 @@ class CharacterListViewModel(
             browseModeState,
             selectedCharacterId,
         ) { characters, litSlots, filter, browseMode, selectedId ->
+            latestLitSlots = litSlots
+            if (!hasLoadedLitSlots || sortingLitSlotsState.value == null) {
+                sortingLitSlotsState.value = litSlots
+                hasLoadedLitSlots = true
+            }
             BaseListState(
                 characters = characters,
                 litSlots = litSlots,
                 filter = filter,
                 browseMode = browseMode,
                 displayMode = CharacterDisplayMode.DETAIL,
+                sortingLitSlots = null,
                 selectedCharacterId = selectedId,
             )
         }
     private val baseListState =
-        combine(repositoryListState, displayModeState) { baseState, displayMode ->
-            baseState.copy(displayMode = displayMode)
+        combine(repositoryListState, displayModeState, sortingLitSlotsState) { baseState, displayMode, sortingLitSlots ->
+            baseState.copy(
+                displayMode = displayMode,
+                sortingLitSlots = sortingLitSlots,
+            )
         }
+
+    init {
+        viewModelScope.launch {
+            settingsRepository.observeCharacterListPreferences().collect { preferences ->
+                applyCharacterListPreferences(preferences)
+            }
+        }
+    }
 
     val uiState: StateFlow<CharacterListUiState> =
         combine(
@@ -96,6 +119,22 @@ class CharacterListViewModel(
             val filteredCharacters = baseState.characters.filter { character ->
                 CharacterFilterMatcher.matches(character, baseState.filter)
             }
+            val cardItems = filteredCharacters.map { character ->
+                character.toCardUi(
+                    litSlots = baseState.litSlots,
+                    filter = baseState.filter,
+                )
+            }.sortedForDisplay(
+                displayMode = baseState.displayMode,
+                sortDimmedIds = filteredCharacters
+                    .filter { character ->
+                        character.shouldDimCompactCard(
+                            filter = baseState.filter,
+                            litSlots = baseState.sortingLitSlots ?: baseState.litSlots,
+                        )
+                    }
+                    .mapTo(linkedSetOf()) { character -> character.id },
+            )
             val batchPaintPreview = BatchPaintPlanner.buildPreview(
                 characters = baseState.characters,
                 litSlots = baseState.litSlots,
@@ -105,12 +144,7 @@ class CharacterListViewModel(
                 filter = baseState.filter,
                 browseMode = baseState.browseMode,
                 displayMode = baseState.displayMode,
-                characters = filteredCharacters.map { character ->
-                    character.toCardUi(
-                        litSlots = baseState.litSlots,
-                        filter = baseState.filter,
-                    )
-                },
+                characters = cardItems,
                 selectedCharacter = baseState.characters.firstOrNull { it.id == baseState.selectedCharacterId },
                 litSlots = baseState.litSlots,
                 batchPaintDialog = BatchPaintDialogUiState(
@@ -126,53 +160,79 @@ class CharacterListViewModel(
         )
 
     fun toggleTier(tier: BoardTier) {
-        filterState.update { filter ->
-            filter.copy(selectedTiers = filter.selectedTiers.toggleSingleItem(tier))
+        updateCharacterListPreferences { preferences ->
+            preferences.copy(
+                filter = preferences.filter.copy(
+                    selectedTiers = preferences.filter.selectedTiers.toggleSingleItem(tier),
+                ),
+            )
         }
     }
 
     fun toggleAttribute(attributeType: AttributeType) {
-        filterState.update { filter ->
-            filter.copy(selectedAttributes = filter.selectedAttributes.toggleItem(attributeType))
+        updateCharacterListPreferences { preferences ->
+            preferences.copy(
+                filter = preferences.filter.copy(
+                    selectedAttributes = preferences.filter.selectedAttributes.toggleItem(attributeType),
+                ),
+            )
         }
     }
 
     fun setNameQuery(query: String) {
-        filterState.update { filter ->
-            filter.copy(nameQuery = query)
+        updateCharacterListPreferences { preferences ->
+            preferences.copy(
+                filter = preferences.filter.copy(nameQuery = query),
+            )
         }
     }
 
     fun togglePersonality(personality: PersonalityType) {
-        filterState.update { filter ->
-            filter.copy(
-                selectedPersonality = if (filter.selectedPersonality == personality) {
-                    null
-                } else {
-                    personality
-                },
+        updateCharacterListPreferences { preferences ->
+            preferences.copy(
+                filter = preferences.filter.copy(
+                    selectedPersonality = if (preferences.filter.selectedPersonality == personality) {
+                        null
+                    } else {
+                        personality
+                    },
+                ),
             )
         }
     }
 
     fun clearFilters() {
-        filterState.value = CharacterFilter(matchMode = filterState.value.matchMode)
+        updateCharacterListPreferences { preferences ->
+            preferences.copy(
+                filter = CharacterFilter(matchMode = preferences.filter.matchMode),
+            )
+        }
     }
 
     fun setBrowseMode(mode: BrowseMode) {
-        browseModeState.value = mode
+        updateCharacterListPreferences { preferences ->
+            preferences.copy(browseMode = mode)
+        }
         if (mode == BrowseMode.DETAIL) {
             dismissPaintSheet()
         }
     }
 
     fun toggleDisplayMode() {
-        displayModeState.update { mode ->
-            if (mode == CharacterDisplayMode.DETAIL) {
-                CharacterDisplayMode.COMPACT
-            } else {
-                CharacterDisplayMode.DETAIL
-            }
+        updateCharacterListPreferences { preferences ->
+            preferences.copy(
+                displayMode = if (preferences.displayMode == CharacterDisplayMode.DETAIL) {
+                    CharacterDisplayMode.COMPACT
+                } else {
+                    CharacterDisplayMode.DETAIL
+                },
+            )
+        }
+    }
+
+    fun refreshCardSort() {
+        if (hasLoadedLitSlots) {
+            sortingLitSlotsState.value = latestLitSlots
         }
     }
 
@@ -248,6 +308,36 @@ class CharacterListViewModel(
             dismissBatchPaintDialog()
         }
     }
+
+    private fun updateCharacterListPreferences(
+        transform: (CharacterListPreferences) -> CharacterListPreferences,
+    ) {
+        val updated = transform(currentCharacterListPreferences())
+        applyCharacterListPreferences(updated)
+        refreshCardSort()
+        viewModelScope.launch {
+            settingsRepository.setCharacterListPreferences(updated)
+        }
+    }
+
+    private fun currentCharacterListPreferences(): CharacterListPreferences =
+        CharacterListPreferences(
+            filter = filterState.value,
+            browseMode = browseModeState.value,
+            displayMode = displayModeState.value,
+        )
+
+    private fun applyCharacterListPreferences(preferences: CharacterListPreferences) {
+        if (filterState.value != preferences.filter) {
+            filterState.value = preferences.filter
+        }
+        if (browseModeState.value != preferences.browseMode) {
+            browseModeState.value = preferences.browseMode
+        }
+        if (displayModeState.value != preferences.displayMode) {
+            displayModeState.value = preferences.displayMode
+        }
+    }
 }
 
 internal fun CharacterProfile.toCardUi(
@@ -274,6 +364,19 @@ internal fun CharacterProfile.toCardUi(
         },
         isCompactDimmed = shouldDimCompactCard(filter = filter, litSlots = litSlots),
     )
+
+internal fun List<CharacterCardUiModel>.sortedForDisplay(
+    displayMode: CharacterDisplayMode,
+    sortDimmedIds: Set<String>? = null,
+): List<CharacterCardUiModel> =
+    if (displayMode == CharacterDisplayMode.COMPACT) {
+        val (dimmed, normal) = partition { item ->
+            sortDimmedIds?.contains(item.id) ?: item.isCompactDimmed
+        }
+        dimmed + normal
+    } else {
+        this
+    }
 
 private fun <T> Set<T>.toggleItem(item: T): Set<T> =
     if (item in this) this - item else this + item
@@ -334,6 +437,7 @@ private data class BaseListState(
     val filter: CharacterFilter,
     val browseMode: BrowseMode,
     val displayMode: CharacterDisplayMode,
+    val sortingLitSlots: Set<String>?,
     val selectedCharacterId: String?,
 )
 

@@ -43,7 +43,7 @@ data class SettingsUiState(
 
 data class AvailableUpdateUiState(
     val versionName: String,
-    val downloadUrl: String?,
+    val updateUrl: String?,
     val releaseNotes: String?,
 )
 
@@ -145,7 +145,7 @@ class SettingsViewModel(
                 is UpdateCheckResult.UpdateAvailable -> {
                     availableUpdateState.value = AvailableUpdateUiState(
                         versionName = result.updateInfo.versionName,
-                        downloadUrl = result.updateInfo.downloadUrl,
+                        updateUrl = result.updateInfo.updateUrl,
                         releaseNotes = result.updateInfo.releaseNotes,
                     )
                 }

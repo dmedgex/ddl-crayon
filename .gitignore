@@ -1,25 +1,77 @@
+# Local machine configuration
+local.properties
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
 # Signing keys and local secrets
 keystore.properties
 *.jks
 *.keystore
+*.p12
+*.pem
+*.key
+*.crt
+*.cer
+*.mobileprovision
+*.env
+.env
+.env.*
+google-services.json
+firebase-*.json
 
-# Local SDK path
-local.properties
-
-# Gradle
+# Gradle / Android build output
 .gradle/
+.kotlin/
 build/
 */build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
 
-# Kotlin/Java
+# Generated packages and reports
+*.apk
+*.aab
+*.ap_
+*.dex
+*.hprof
+*.prof
+*.trace
+*.ec
+*.exec
+lint-results*.html
+lint-results*.xml
+test-results/
+reports/
+
+# Kotlin / Java / native compiler output
 *.class
 out/
-.kotlin/
+bin/
+obj/
+hs_err_pid*
+replay_pid*
 
-# Android Studio / IntelliJ
-.idea/
-*.iml
+# Local emulator, adb, and UI inspection artifacts
+emu_*.png
+logcat_*.txt
+ui_*.xml
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
 
 # OS/editor noise
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 .DS_Store
+.Spotlight-V100
+.Trashes

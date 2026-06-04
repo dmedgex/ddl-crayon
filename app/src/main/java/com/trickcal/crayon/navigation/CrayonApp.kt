@@ -38,16 +38,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.trickcal.crayon.feature.battlepower.BattlePowerCalculatorScreen
-import com.trickcal.crayon.feature.battlepower.BattlePowerCalculatorViewModel
-import com.trickcal.crayon.feature.damage.DamageCalculatorScreen
-import com.trickcal.crayon.feature.damage.DamageCalculatorViewModel
 import com.trickcal.crayon.feature.detail.CharacterDetailScreen
 import com.trickcal.crayon.feature.detail.CharacterDetailViewModel
 import com.trickcal.crayon.feature.list.CharacterListScreen
 import com.trickcal.crayon.feature.list.CharacterListViewModel
-import com.trickcal.crayon.feature.petdispatch.PetDispatchScreen
-import com.trickcal.crayon.feature.petdispatch.PetDispatchViewModel
 import com.trickcal.crayon.feature.settings.SettingsPage
 import com.trickcal.crayon.feature.settings.SettingsViewModel
 import com.trickcal.crayon.feature.statistics.StatisticsScreen
@@ -194,15 +188,6 @@ fun CrayonApp(
                     uiState = uiState,
                     onThemeModeSelected = viewModel::setThemeMode,
                     onCheckUpdateRequested = viewModel::checkForUpdate,
-                    onOpenPetDispatch = {
-                        navController.navigate(PetDispatchDestination.route)
-                    },
-                    onOpenDamageCalculator = {
-                        navController.navigate(DamageCalculatorDestination.route)
-                    },
-                    onOpenBattlePowerCalculator = {
-                        navController.navigate(BattlePowerCalculatorDestination.route)
-                    },
                     buildExportFileName = viewModel::buildExportFileName,
                     onExportRequested = { context, uri ->
                         viewModel.exportToStream(context.contentResolver.openOutputStream(uri))
@@ -213,79 +198,6 @@ fun CrayonApp(
                     onDismissImportConfirm = viewModel::dismissImportConfirm,
                     onConfirmImport = viewModel::confirmImport,
                     onDismissUpdateDialog = viewModel::dismissUpdateDialog,
-                )
-            }
-        }
-
-        composable(route = PetDispatchDestination.route) {
-            val viewModel: PetDispatchViewModel = viewModel(factory = viewModelFactory)
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            Scaffold(
-                topBar = {
-                    DetailTopBar(
-                        title = "农场宠物派遣计算器Beta",
-                        backEnabled = true,
-                        onBack = { navController.popBackStack() },
-                    )
-                },
-            ) { innerPadding ->
-                PetDispatchScreen(
-                    modifier = Modifier.padding(innerPadding),
-                    uiState = uiState,
-                    onRetryLoad = viewModel::retryLoad,
-                    onSelectRegion = viewModel::setSelectedRegion,
-                    onSelectTaskCount = viewModel::setSelectedTaskCount,
-                    onToggleOwnedPet = viewModel::toggleOwnedPet,
-                    onToggleFarmPet = viewModel::toggleFarmPet,
-                    onSelectTab = viewModel::setSelectedTab,
-                    onCalculate = viewModel::calculate,
-                    onDismissResult = viewModel::dismissResult,
-                )
-            }
-        }
-
-        composable(route = DamageCalculatorDestination.route) {
-            val viewModel: DamageCalculatorViewModel = viewModel(factory = viewModelFactory)
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            Scaffold(
-                topBar = {
-                    DetailTopBar(
-                        title = "伤害计算器Beta",
-                        backEnabled = true,
-                        onBack = { navController.popBackStack() },
-                    )
-                },
-            ) { innerPadding ->
-                DamageCalculatorScreen(
-                    modifier = Modifier.padding(innerPadding),
-                    uiState = uiState,
-                    onInputChange = viewModel::updateInput,
-                    onToggleMoreSettings = viewModel::toggleMoreSettings,
-                    onCalculate = viewModel::calculate,
-                )
-            }
-        }
-
-        composable(route = BattlePowerCalculatorDestination.route) {
-            val viewModel: BattlePowerCalculatorViewModel = viewModel(factory = viewModelFactory)
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            Scaffold(
-                topBar = {
-                    DetailTopBar(
-                        title = "战斗力计算器Beta",
-                        backEnabled = true,
-                        onBack = { navController.popBackStack() },
-                    )
-                },
-            ) { innerPadding ->
-                BattlePowerCalculatorScreen(
-                    modifier = Modifier.padding(innerPadding),
-                    uiState = uiState,
-                    onCharacterQueryChange = viewModel::updateCharacterQuery,
-                    onCharacterSelected = viewModel::selectCharacter,
-                    onInputChange = viewModel::updateInput,
-                    onToggleMoreSettings = viewModel::toggleMoreSettings,
-                    onCalculate = viewModel::calculate,
                 )
             }
         }

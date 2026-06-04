@@ -47,6 +47,34 @@ lint-results*.xml
 test-results/
 reports/
 
+# Local-only lab features
+local_labs/
+app/src/main/assets/battle_power/
+app/src/main/assets/pet_dispatch/
+app/src/main/java/com/trickcal/crayon/data/local/BattlePowerCharacterCatalogJsonParser.kt
+app/src/main/java/com/trickcal/crayon/data/local/PetDispatchCatalogJsonParser.kt
+app/src/main/java/com/trickcal/crayon/domain/battlepower/
+app/src/main/java/com/trickcal/crayon/domain/damage/
+app/src/main/java/com/trickcal/crayon/domain/petdispatch/
+app/src/main/java/com/trickcal/crayon/feature/battlepower/
+app/src/main/java/com/trickcal/crayon/feature/damage/
+app/src/main/java/com/trickcal/crayon/feature/petdispatch/
+app/src/main/java/com/trickcal/crayon/model/BattlePowerModels.kt
+app/src/main/java/com/trickcal/crayon/model/PetDispatchModels.kt
+app/src/main/java/com/trickcal/crayon/repository/BattlePowerCharacterRepository.kt
+app/src/main/java/com/trickcal/crayon/repository/PetDispatchRepository.kt
+app/src/main/java/com/trickcal/crayon/repository/PetDispatchSelectionRepository.kt
+app/src/test/java/com/trickcal/crayon/data/local/PetDispatchCatalogJsonParserTest.kt
+app/src/test/java/com/trickcal/crayon/domain/battlepower/
+app/src/test/java/com/trickcal/crayon/domain/damage/
+app/src/test/java/com/trickcal/crayon/domain/petdispatch/
+app/src/test/java/com/trickcal/crayon/feature/battlepower/
+app/src/test/java/com/trickcal/crayon/feature/damage/
+app/src/test/java/com/trickcal/crayon/feature/petdispatch/
+app/src/test/java/com/trickcal/crayon/repository/PetDispatchSelectionStorageCodecTest.kt
+tools/battle_power/
+tools/pet_dispatch/
+
 # Kotlin / Java / native compiler output
 *.class
 out/

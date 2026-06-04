@@ -22,9 +22,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -44,9 +42,6 @@ fun SettingsPage(
     uiState: SettingsUiState,
     onThemeModeSelected: (ThemeMode) -> Unit,
     onCheckUpdateRequested: () -> Unit,
-    onOpenPetDispatch: () -> Unit,
-    onOpenDamageCalculator: () -> Unit,
-    onOpenBattlePowerCalculator: () -> Unit,
     buildExportFileName: () -> String,
     onExportRequested: (Context, Uri) -> Unit,
     onImportRequested: (Context, Uri) -> Unit,
@@ -57,7 +52,6 @@ fun SettingsPage(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    var isLabDialogVisible by remember { mutableStateOf(false) }
     val versionName = remember(context) {
         runCatching {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
@@ -158,20 +152,6 @@ fun SettingsPage(
         }
 
         item {
-            SettingsPageSectionCard(
-                title = "实验室",
-                description = "体验仍在测试中的实验功能。",
-            ) {
-                Button(
-                    onClick = { isLabDialogVisible = true },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("查看实验功能")
-                }
-            }
-        }
-
-        item {
             AuthorCard(
                 authorName = AUTHOR_NAME,
                 avatarKey = AUTHOR_AVATAR_KEY,
@@ -209,55 +189,6 @@ fun SettingsPage(
             },
             dismissButton = {
                 OutlinedButton(onClick = onDismissImportConfirm) {
-                    Text("取消")
-                }
-            },
-        )
-    }
-
-    if (isLabDialogVisible) {
-        AlertDialog(
-            onDismissRequest = { isLabDialogVisible = false },
-            title = {
-                Text("实验室")
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = "选择想体验的实验功能。",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    OutlinedButton(
-                        onClick = {
-                            isLabDialogVisible = false
-                            onOpenPetDispatch()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("农场宠物派遣计算器Beta")
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            isLabDialogVisible = false
-                            onOpenDamageCalculator()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("伤害计算器Beta")
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            isLabDialogVisible = false
-                            onOpenBattlePowerCalculator()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("战斗力计算器Beta")
-                    }
-                }
-            },
-            confirmButton = {
-                Button(onClick = { isLabDialogVisible = false }) {
                     Text("取消")
                 }
             },

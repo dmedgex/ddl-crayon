@@ -37,15 +37,3 @@ object CharacterDetailDestination {
 
     fun createRoute(characterId: String): String = "characters/detail/${Uri.encode(characterId)}"
 }
-
-object PetDispatchDestination {
-    const val route = "labs/pet-dispatch"
-}
-
-object DamageCalculatorDestination {
-    const val route = "labs/damage-calculator"
-}
-
-object BattlePowerCalculatorDestination {
-    const val route = "labs/battle-power-calculator"
-}

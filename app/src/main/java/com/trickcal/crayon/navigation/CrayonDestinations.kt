@@ -37,3 +37,31 @@ object CharacterDetailDestination {
 
     fun createRoute(characterId: String): String = "characters/detail/${Uri.encode(characterId)}"
 }
+
+object PetDispatchDestination {
+    const val route = "tools/pet-dispatch"
+}
+
+object PetDispatchPetConfigDestination {
+    const val route = "tools/pet-dispatch/pets"
+}
+
+object PetDispatchRegionConfigDestination {
+    const val route = "tools/pet-dispatch/regions"
+}
+
+object CustomPetEditorDestination {
+    const val route = "tools/pet-dispatch/custom-pets"
+}
+
+object DamageCalculatorDestination {
+    const val route = "tools/damage-calculator"
+}
+
+object BattlePowerCalculatorDestination {
+    const val route = "tools/battle-power-calculator"
+}
+
+object CustomApostleDestination {
+    const val route = "settings/custom-apostle"
+}

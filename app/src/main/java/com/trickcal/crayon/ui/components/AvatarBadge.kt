@@ -43,12 +43,20 @@ fun AvatarBadge(
     val avatarResId = remember(avatarKey, context.packageName) {
         context.resolveDrawableResId(avatarKey)
     }
-    val imageBitmap = remember(avatarResId, context) {
-        DrawableImageBitmapCache.getOrLoad(
-            context = context,
-            drawableResId = avatarResId,
-            maxDimensionPx = 256,
-        )
+    val imageBitmap = remember(avatarKey, avatarResId, context) {
+        if (avatarKey.startsWith(CUSTOM_AVATAR_PREFIX)) {
+            FileImageBitmapCache.getOrLoad(
+                context = context,
+                relativePath = "custom_apostle_images/${avatarKey.removePrefix(CUSTOM_AVATAR_PREFIX)}",
+                maxDimensionPx = 256,
+            )
+        } else {
+            DrawableImageBitmapCache.getOrLoad(
+                context = context,
+                drawableResId = avatarResId,
+                maxDimensionPx = 256,
+            )
+        }
     }
     val shape = RoundedCornerShape(18.dp)
     val seed = avatarKey.hashCode() and Int.MAX_VALUE
@@ -86,3 +94,5 @@ fun AvatarBadge(
         }
     }
 }
+
+const val CUSTOM_AVATAR_PREFIX = "custom:"

@@ -28,6 +28,7 @@ object ProgressConfigCodec {
                 "litSlotIds",
                 JsonArray(config.litSlotIds.sorted().map(::JsonPrimitive)),
             )
+            put("customApostles", config.customApostles)
         }
         return json.encodeToString(JsonObject.serializer(), payload)
     }
@@ -44,7 +45,7 @@ object ProgressConfigCodec {
 
         val version = root["version"]?.jsonPrimitive?.intOrNull
             ?: throw IllegalArgumentException("配置文件缺少 version。")
-        if (version != ProgressConfig.CURRENT_VERSION) {
+        if (version !in 1..ProgressConfig.CURRENT_VERSION) {
             throw IllegalArgumentException("不支持的配置版本：$version。")
         }
 
@@ -63,6 +64,7 @@ object ProgressConfigCodec {
             sourceSlotCount = sourceSlotIds.size,
             ignoredSlotCount = sourceSlotIds.size - filteredSlotIds.size,
             slotIds = filteredSlotIds,
+            customApostles = root["customApostles"]?.jsonArray,
         )
     }
 }

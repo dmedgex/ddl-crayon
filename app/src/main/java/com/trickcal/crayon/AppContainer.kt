@@ -10,13 +10,21 @@ import com.trickcal.crayon.data.local.CharacterBoardAssetLoader
 import com.trickcal.crayon.data.local.DemoCharacterCatalog
 import com.trickcal.crayon.data.room.CrayonDatabase
 import com.trickcal.crayon.feature.detail.CharacterDetailViewModel
+import com.trickcal.crayon.feature.battlepower.BattlePowerCalculatorViewModel
+import com.trickcal.crayon.feature.damage.DamageCalculatorViewModel
 import com.trickcal.crayon.feature.list.CharacterListViewModel
+import com.trickcal.crayon.feature.petdispatch.PetDispatchViewModel
 import com.trickcal.crayon.feature.settings.SettingsViewModel
 import com.trickcal.crayon.feature.statistics.StatisticsViewModel
 import com.trickcal.crayon.repository.AppUpdateRepository
+import com.trickcal.crayon.repository.AssetBattlePowerCharacterRepository
+import com.trickcal.crayon.repository.BattlePowerCharacterRepository
 import com.trickcal.crayon.repository.CatalogRepository
 import com.trickcal.crayon.repository.CrayonRepository
+import com.trickcal.crayon.repository.CustomApostleRepository
 import com.trickcal.crayon.repository.PaintProgressRepository
+import com.trickcal.crayon.repository.PetDispatchRepository
+import com.trickcal.crayon.repository.PetDispatchSelectionRepository
 import com.trickcal.crayon.repository.SettingsRepository
 
 class AppContainer(context: Context) {
@@ -39,7 +47,14 @@ class AppContainer(context: Context) {
             Log.e(TAG, "Failed to load character_boards.json. Falling back to demo catalog.", it)
             DemoCharacterCatalog.characters
         }
-        CatalogRepository(catalog)
+        CatalogRepository(
+            characters = catalog,
+            customApostleRepository = customApostleRepository,
+        )
+    }
+
+    val customApostleRepository: CustomApostleRepository by lazy {
+        CustomApostleRepository(context.applicationContext)
     }
 
     private val paintProgressRepository: PaintProgressRepository by lazy {
@@ -54,11 +69,24 @@ class AppContainer(context: Context) {
         CrayonRepository(
             catalogRepository = catalogRepository,
             paintProgressRepository = paintProgressRepository,
+            customApostleRepository = customApostleRepository,
         )
     }
 
     val appUpdateRepository: AppUpdateRepository by lazy {
         AppUpdateRepository()
+    }
+
+    val petDispatchRepository: PetDispatchRepository by lazy {
+        PetDispatchRepository(context.applicationContext)
+    }
+
+    val petDispatchSelectionRepository: PetDispatchSelectionRepository by lazy {
+        PetDispatchSelectionRepository(context.applicationContext)
+    }
+
+    val battlePowerCharacterRepository: BattlePowerCharacterRepository by lazy {
+        AssetBattlePowerCharacterRepository(context.applicationContext)
     }
 
 }
@@ -93,6 +121,21 @@ class CrayonViewModelFactory(
                     crayonRepository = appContainer.crayonRepository,
                     appUpdateRepository = appContainer.appUpdateRepository,
                 ) as T
+            }
+
+            modelClass.isAssignableFrom(PetDispatchViewModel::class.java) -> {
+                PetDispatchViewModel(
+                    petDispatchRepository = appContainer.petDispatchRepository,
+                    selectionRepository = appContainer.petDispatchSelectionRepository,
+                ) as T
+            }
+
+            modelClass.isAssignableFrom(DamageCalculatorViewModel::class.java) -> {
+                DamageCalculatorViewModel() as T
+            }
+
+            modelClass.isAssignableFrom(BattlePowerCalculatorViewModel::class.java) -> {
+                BattlePowerCalculatorViewModel(appContainer.battlePowerCharacterRepository) as T
             }
 
             else -> error("Unsupported ViewModel class: ${modelClass.name}")

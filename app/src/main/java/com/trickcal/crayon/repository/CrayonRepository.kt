@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 class CrayonRepository(
     private val catalogRepository: CatalogRepository,
     private val paintProgressRepository: PaintProgressRepository,
+    private val customApostleRepository: CustomApostleRepository,
 ) {
     fun observeCharacters(): Flow<List<CharacterProfile>> = catalogRepository.observeCharacters()
 
@@ -42,12 +43,19 @@ class CrayonRepository(
         ProgressConfig(
             exportedAt = System.currentTimeMillis(),
             litSlotIds = paintProgressRepository.getLitSlots().sorted(),
+            customApostles = customApostleRepository.exportPayload(),
         )
 
     fun getValidSlotIds(): Set<String> = catalogRepository.getAllSlotIds()
 
     suspend fun replaceProgress(slotIds: Set<String>) {
         paintProgressRepository.replaceProgress(slotIds.intersect(getValidSlotIds()))
+    }
+
+    suspend fun replaceCustomApostles(payload: kotlinx.serialization.json.JsonArray?) {
+        if (payload != null) {
+            customApostleRepository.replaceFromPayload(payload)
+        }
     }
 
     fun getCharacter(characterId: String): CharacterProfile? =

@@ -37,6 +37,7 @@ fun BoardGrid(
     layer: BoardLayerSpec,
     litSlots: Set<String>,
     modifier: Modifier = Modifier,
+    useBlankUnlockableCells: Boolean = false,
 ) {
     val spacing = if (layer.columns >= 6) 4.dp else 8.dp
     val cellShape = RoundedCornerShape(if (layer.columns >= 6) 10.dp else 12.dp)
@@ -81,6 +82,7 @@ fun BoardGrid(
                     ) {
                         BoardCellVisual(
                             type = cell.type,
+                            useBlankUnlockableCell = useBlankUnlockableCells && cell.type.isUnlockable,
                             modifier = Modifier.fillMaxSize(),
                         )
                         if (slot != null && isUnlocked) {
@@ -100,10 +102,11 @@ fun BoardGrid(
 @Composable
 private fun BoardCellVisual(
     type: BoardCellType,
+    useBlankUnlockableCell: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val drawableRes = cellDrawableRes(type)
+    val drawableRes = if (useBlankUnlockableCell) R.drawable.cell_ else cellDrawableRes(type)
     val canUseRasterPainter = remember(drawableRes, context) {
         context.resources.isRasterDrawable(drawableRes)
     }

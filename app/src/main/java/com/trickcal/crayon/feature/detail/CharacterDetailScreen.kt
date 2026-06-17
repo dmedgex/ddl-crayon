@@ -88,6 +88,7 @@ fun CharacterDetailScreen(
                     BoardGrid(
                         layer = layer,
                         litSlots = uiState.litSlots,
+                        useBlankUnlockableCells = character.isCustom,
                     )
                 }
             }

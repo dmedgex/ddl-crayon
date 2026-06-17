@@ -24,11 +24,13 @@ import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlinx.serialization.json.JsonArray
 
 data class PendingImportUiState(
     val slotIds: Set<String>,
     val sourceSlotCount: Int,
     val ignoredSlotCount: Int,
+    val customApostles: JsonArray? = null,
 ) {
     val isClearOperation: Boolean
         get() = sourceSlotCount == 0
@@ -166,10 +168,15 @@ class SettingsViewModel(
         availableUpdateState.value = null
     }
 
+    fun showDevelopingMessage() {
+        emitMessage("开发中，敬请期待")
+    }
+
     fun confirmImport() {
         val pendingImport = pendingImportState.value ?: return
         viewModelScope.launch {
             crayonRepository.replaceProgress(pendingImport.slotIds)
+            crayonRepository.replaceCustomApostles(pendingImport.customApostles)
             pendingImportState.value = null
             emitMessage(
                 if (pendingImport.isClearOperation) {
@@ -188,10 +195,11 @@ class SettingsViewModel(
                     slotIds = emptySet(),
                     sourceSlotCount = 0,
                     ignoredSlotCount = 0,
+                    customApostles = prepared.customApostles,
                 )
             }
 
-            prepared.slotIds.isEmpty() -> {
+            prepared.slotIds.isEmpty() && prepared.customApostles == null -> {
                 emitMessage("导入文件中没有可用的解锁进度。")
             }
 
@@ -200,6 +208,7 @@ class SettingsViewModel(
                     slotIds = prepared.slotIds,
                     sourceSlotCount = prepared.sourceSlotCount,
                     ignoredSlotCount = prepared.ignoredSlotCount,
+                    customApostles = prepared.customApostles,
                 )
             }
         }

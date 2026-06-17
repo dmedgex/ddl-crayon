@@ -1,6 +1,7 @@
 package com.trickcal.crayon.navigation
 
 import com.trickcal.crayon.AppContainer
+import com.trickcal.crayon.config.FeatureConfig
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -40,9 +41,19 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.trickcal.crayon.feature.detail.CharacterDetailScreen
 import com.trickcal.crayon.feature.detail.CharacterDetailViewModel
+import com.trickcal.crayon.feature.battlepower.BattlePowerCalculatorScreen
+import com.trickcal.crayon.feature.battlepower.BattlePowerCalculatorViewModel
+import com.trickcal.crayon.feature.damage.DamageCalculatorScreen
+import com.trickcal.crayon.feature.damage.DamageCalculatorViewModel
 import com.trickcal.crayon.feature.list.CharacterListScreen
 import com.trickcal.crayon.feature.list.CharacterListViewModel
+import com.trickcal.crayon.feature.petdispatch.PetDispatchScreen
+import com.trickcal.crayon.feature.petdispatch.PetDispatchPetConfigScreen
+import com.trickcal.crayon.feature.petdispatch.PetDispatchRegionConfigScreen
+import com.trickcal.crayon.feature.petdispatch.CustomPetEditorScreen
+import com.trickcal.crayon.feature.petdispatch.PetDispatchViewModel
 import com.trickcal.crayon.feature.settings.SettingsPage
+import com.trickcal.crayon.feature.settings.CustomApostleScreen
 import com.trickcal.crayon.feature.settings.SettingsViewModel
 import com.trickcal.crayon.feature.statistics.StatisticsScreen
 import com.trickcal.crayon.feature.statistics.StatisticsViewModel
@@ -198,6 +209,181 @@ fun CrayonApp(
                     onDismissImportConfirm = viewModel::dismissImportConfirm,
                     onConfirmImport = viewModel::confirmImport,
                     onDismissUpdateDialog = viewModel::dismissUpdateDialog,
+                    onOpenPetDispatch = {
+                        navController.navigate(PetDispatchDestination.route)
+                    },
+                    onOpenDamageCalculator = {
+                        if (FeatureConfig.damageCalculatorEnabled) {
+                            navController.navigate(DamageCalculatorDestination.route)
+                        } else {
+                            viewModel.showDevelopingMessage()
+                        }
+                    },
+                    onOpenBattlePowerCalculator = {
+                        if (FeatureConfig.battlePowerCalculatorEnabled) {
+                            navController.navigate(BattlePowerCalculatorDestination.route)
+                        } else {
+                            viewModel.showDevelopingMessage()
+                        }
+                    },
+                    onOpenCustomApostle = {
+                        navController.navigate(CustomApostleDestination.route)
+                    },
+                )
+            }
+        }
+
+        composable(route = CustomApostleDestination.route) {
+            Scaffold(
+                topBar = {
+                    DetailTopBar(
+                        title = "自定义新增使徒",
+                        backEnabled = true,
+                        onBack = { navController.popBackStack() },
+                    )
+                },
+            ) { innerPadding ->
+                CustomApostleScreen(
+                    repository = appContainer.customApostleRepository,
+                    modifier = Modifier.padding(innerPadding),
+                )
+            }
+        }
+
+        composable(route = PetDispatchDestination.route) {
+            val viewModel: PetDispatchViewModel = viewModel(factory = viewModelFactory)
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            Scaffold(
+                topBar = {
+                    DetailTopBar(
+                        title = "平日农场宠物派遣计算器",
+                        backEnabled = true,
+                        onBack = { navController.popBackStack() },
+                    )
+                },
+            ) { innerPadding ->
+                PetDispatchScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    uiState = uiState,
+                    onRetryLoad = viewModel::retryLoad,
+                    onOpenPetConfig = { navController.navigate(PetDispatchPetConfigDestination.route) },
+                    onOpenRegionConfig = { navController.navigate(PetDispatchRegionConfigDestination.route) },
+                    onCalculate = viewModel::calculate,
+                    onDismissResult = viewModel::dismissResult,
+                )
+            }
+        }
+
+        composable(route = PetDispatchPetConfigDestination.route) {
+            val viewModel: PetDispatchViewModel = viewModel(factory = viewModelFactory)
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            Scaffold(
+                topBar = {
+                    DetailTopBar(
+                        title = "宠物配置",
+                        backEnabled = true,
+                        onBack = { navController.popBackStack() },
+                    )
+                },
+            ) { innerPadding ->
+                PetDispatchPetConfigScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    uiState = uiState,
+                    onToggleOwnedPet = viewModel::toggleOwnedPet,
+                    onToggleFarmPet = viewModel::toggleFarmPet,
+                    onSelectTab = viewModel::setSelectedTab,
+                    onAddCustomPet = viewModel::addCustomPet,
+                    onExportPetConfig = viewModel::exportPetConfig,
+                    onImportPetConfig = viewModel::importPetConfig,
+                    onOpenCustomPetEditor = { navController.navigate(CustomPetEditorDestination.route) },
+                )
+            }
+        }
+
+        composable(route = PetDispatchRegionConfigDestination.route) {
+            val viewModel: PetDispatchViewModel = viewModel(factory = viewModelFactory)
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            Scaffold(
+                topBar = {
+                    DetailTopBar(
+                        title = "派遣地区配置",
+                        backEnabled = true,
+                        onBack = { navController.popBackStack() },
+                    )
+                },
+            ) { innerPadding ->
+                PetDispatchRegionConfigScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    uiState = uiState,
+                    onSelectRegion = viewModel::setSelectedRegion,
+                    onSelectTaskCount = viewModel::setSelectedTaskCount,
+                    onTaskBonusSkillChange = viewModel::setTaskBonusSkill,
+                )
+            }
+        }
+
+        composable(route = CustomPetEditorDestination.route) {
+            val viewModel: PetDispatchViewModel = viewModel(factory = viewModelFactory)
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            Scaffold(
+                topBar = {
+                    DetailTopBar(
+                        title = "编辑自定义新增宠物",
+                        backEnabled = true,
+                        onBack = { navController.popBackStack() },
+                    )
+                },
+            ) { innerPadding ->
+                CustomPetEditorScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    uiState = uiState,
+                    onDeleteCustomPet = viewModel::deleteCustomPet,
+                )
+            }
+        }
+
+        composable(route = DamageCalculatorDestination.route) {
+            val viewModel: DamageCalculatorViewModel = viewModel(factory = viewModelFactory)
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            Scaffold(
+                topBar = {
+                    DetailTopBar(
+                        title = "伤害计算器",
+                        backEnabled = true,
+                        onBack = { navController.popBackStack() },
+                    )
+                },
+            ) { innerPadding ->
+                DamageCalculatorScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    uiState = uiState,
+                    onInputChange = viewModel::updateInput,
+                    onCalculate = viewModel::calculate,
+                    onToggleMoreSettings = viewModel::toggleMoreSettings,
+                )
+            }
+        }
+
+        composable(route = BattlePowerCalculatorDestination.route) {
+            val viewModel: BattlePowerCalculatorViewModel = viewModel(factory = viewModelFactory)
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            Scaffold(
+                topBar = {
+                    DetailTopBar(
+                        title = "使徒战斗力计算器",
+                        backEnabled = true,
+                        onBack = { navController.popBackStack() },
+                    )
+                },
+            ) { innerPadding ->
+                BattlePowerCalculatorScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    uiState = uiState,
+                    onCharacterQueryChange = viewModel::updateCharacterQuery,
+                    onCharacterSelected = viewModel::selectCharacter,
+                    onInputChange = viewModel::updateInput,
+                    onCalculate = viewModel::calculate,
+                    onToggleMoreSettings = viewModel::toggleMoreSettings,
                 )
             }
         }

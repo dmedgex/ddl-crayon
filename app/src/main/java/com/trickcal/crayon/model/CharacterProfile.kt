@@ -6,6 +6,7 @@ data class CharacterProfile(
     val avatarKey: String,
     val personality: PersonalityType,
     val layers: List<BoardLayerSpec>,
+    val isCustom: Boolean = false,
 ) {
     val avatarSeed: Int
         get() = avatarKey.hashCode() and Int.MAX_VALUE

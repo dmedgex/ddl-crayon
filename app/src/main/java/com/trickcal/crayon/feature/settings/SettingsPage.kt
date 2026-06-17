@@ -10,13 +10,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -28,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.trickcal.crayon.config.FeatureConfig
 import com.trickcal.crayon.model.ThemeMode
 import com.trickcal.crayon.ui.components.AvatarBadge
 import com.trickcal.crayon.ui.components.SectionTitle
@@ -48,6 +56,10 @@ fun SettingsPage(
     onDismissImportConfirm: () -> Unit,
     onConfirmImport: () -> Unit,
     onDismissUpdateDialog: () -> Unit,
+    onOpenPetDispatch: () -> Unit,
+    onOpenDamageCalculator: () -> Unit,
+    onOpenBattlePowerCalculator: () -> Unit,
+    onOpenCustomApostle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -134,6 +146,15 @@ fun SettingsPage(
                     }
                 }
             }
+        }
+
+        item {
+            ToolLauncherCard(
+                onOpenPetDispatch = onOpenPetDispatch,
+                onOpenDamageCalculator = onOpenDamageCalculator,
+                onOpenBattlePowerCalculator = onOpenBattlePowerCalculator,
+                onOpenCustomApostle = onOpenCustomApostle,
+            )
         }
 
         item {
@@ -232,6 +253,73 @@ fun SettingsPage(
                     Text("取消")
                 }
             },
+        )
+    }
+}
+
+@Composable
+private fun ToolLauncherCard(
+    onOpenPetDispatch: () -> Unit,
+    onOpenDamageCalculator: () -> Unit,
+    onOpenBattlePowerCalculator: () -> Unit,
+    onOpenCustomApostle: () -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(vertical = 6.dp)) {
+            Text(
+                text = "圣团长的妙妙小工具",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            )
+            SettingsToolRow(
+                title = "平日农场宠物派遣计算器",
+                onClick = onOpenPetDispatch,
+            )
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            SettingsToolRow(
+                title = "伤害计算器",
+                onClick = onOpenDamageCalculator,
+            )
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            SettingsToolRow(
+                title = "使徒战斗力计算器",
+                onClick = onOpenBattlePowerCalculator,
+            )
+            if (FeatureConfig.customApostleEnabled) {
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                SettingsToolRow(
+                    title = "编辑自定义新增使徒",
+                    onClick = onOpenCustomApostle,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsToolRow(
+    title: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 52.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(modifier = Modifier.size(12.dp))
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

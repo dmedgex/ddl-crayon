@@ -1,12 +1,15 @@
 package com.trickcal.crayon.model
 
+import kotlinx.serialization.json.JsonArray
+
 data class ProgressConfig(
     val version: Int = CURRENT_VERSION,
     val exportedAt: Long,
     val litSlotIds: List<String>,
+    val customApostles: JsonArray = JsonArray(emptyList()),
 ) {
     companion object {
-        const val CURRENT_VERSION = 1
+        const val CURRENT_VERSION = 2
     }
 }
 
@@ -14,6 +17,7 @@ data class PreparedProgressImport(
     val sourceSlotCount: Int,
     val ignoredSlotCount: Int,
     val slotIds: Set<String>,
+    val customApostles: JsonArray? = null,
 )
 
 enum class ThemeMode(

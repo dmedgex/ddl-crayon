@@ -15,10 +15,12 @@ import com.trickcal.crayon.repository.PetDispatchRepository
 import com.trickcal.crayon.repository.PetDispatchSelectionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -99,12 +101,18 @@ class PetDispatchViewModel(
         )
 
     init {
+        viewModelScope.launch {
+            val persisted = selectionRepository.observeSelectionState().first()
+            selectionState.value = persisted
+            loadCatalogInternal()
+        }
         observePersistedSelection()
-        loadCatalog()
     }
 
     fun retryLoad() {
-        loadCatalog()
+        viewModelScope.launch {
+            loadCatalogInternal()
+        }
     }
 
     fun setSelectedRegion(regionName: String) {
@@ -179,7 +187,7 @@ class PetDispatchViewModel(
                 petDispatchRepository.addCustomPet(request)
                 petDispatchRepository.loadCatalog()
             }.onSuccess {
-                loadCatalog()
+                loadCatalogInternal()
             }.onFailure { error ->
                 resultState.value = PetDispatchResult(
                     isSuccess = false,
@@ -203,7 +211,7 @@ class PetDispatchViewModel(
                     selectedFarmPetIds = current.selectedFarmPetIds - petId,
                 ),
             )
-            loadCatalog()
+            loadCatalogInternal()
         }
     }
 
@@ -232,7 +240,7 @@ class PetDispatchViewModel(
             runCatching {
                 petDispatchRepository.importCustomPets(inputStream)
             }.onSuccess {
-                loadCatalog()
+                loadCatalogInternal()
             }.onFailure { error ->
                 resultState.value = PetDispatchResult(
                     isSuccess = false,
@@ -277,8 +285,10 @@ class PetDispatchViewModel(
                     selection = mergedSelection,
                 )
                 selectionState.value = sanitizedSelection
-                selectionRepository.saveSelectionState(sanitizedSelection)
-                loadCatalog()
+                withContext(NonCancellable) {
+                    selectionRepository.saveSelectionState(sanitizedSelection)
+                }
+                loadCatalogInternal()
             }.onFailure { error ->
                 resultState.value = PetDispatchResult(
                     isSuccess = false,
@@ -356,22 +366,20 @@ class PetDispatchViewModel(
         }
     }
 
-    private fun loadCatalog() {
-        viewModelScope.launch {
-            catalogState.value = PetDispatchCatalogState(catalog = null, errorMessage = null)
-            runCatching {
-                petDispatchRepository.loadCatalog()
-            }.onSuccess { catalog ->
-                catalogState.value = PetDispatchCatalogState(catalog = catalog)
-                ensureSelectionDefaults(
-                    regions = catalog.regions,
-                    pets = catalog.pets,
-                )
-            }.onFailure { error ->
-                catalogState.value = PetDispatchCatalogState(
-                    errorMessage = error.message ?: "加载宠物派遣数据失败。",
-                )
-            }
+    private suspend fun loadCatalogInternal() {
+        catalogState.value = PetDispatchCatalogState(catalog = null, errorMessage = null)
+        runCatching {
+            petDispatchRepository.loadCatalog()
+        }.onSuccess { catalog ->
+            catalogState.value = PetDispatchCatalogState(catalog = catalog)
+            ensureSelectionDefaults(
+                regions = catalog.regions,
+                pets = catalog.pets,
+            )
+        }.onFailure { error ->
+            catalogState.value = PetDispatchCatalogState(
+                errorMessage = error.message ?: "加载宠物派遣数据失败。",
+            )
         }
     }
 
@@ -397,14 +405,18 @@ class PetDispatchViewModel(
         )
         if (sanitizedSelection != currentSelection) {
             selectionState.value = sanitizedSelection
-            selectionRepository.saveSelectionState(sanitizedSelection)
+            withContext(NonCancellable) {
+                selectionRepository.saveSelectionState(sanitizedSelection)
+            }
         }
     }
 
     private fun persistSelection(selection: PetDispatchSelectionState) {
         selectionState.value = selection
         viewModelScope.launch {
-            selectionRepository.saveSelectionState(selection)
+            withContext(NonCancellable) {
+                selectionRepository.saveSelectionState(selection)
+            }
         }
     }
 

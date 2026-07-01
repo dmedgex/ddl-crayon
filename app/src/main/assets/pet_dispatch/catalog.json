@@ -672,12 +672,12 @@
       "baseScore": 5,
       "skills": [
         {
-          "name": "运动",
+          "name": "亲密",
           "level": "S",
           "score": 22
         },
         {
-          "name": "沟通",
+          "name": "体贴",
           "level": "B",
           "score": 12
         }
@@ -872,7 +872,49 @@
     },
     {
       "name": "幽灵村",
-      "tasks": []
+      "tasks": [
+        {
+          "id": 0,
+          "area": "琳的家",
+          "task": "与琳聊聊关于幽默",
+          "bonusSkills": [
+            "敏锐"
+          ]
+        },
+        {
+          "id": 1,
+          "area": "南瓜农场",
+          "task": "偷南瓜地",
+          "bonusSkills": [
+            "亲密"
+          ]
+        },
+        {
+          "id": 2,
+          "area": "照相馆",
+          "task": "慌张的脸被赛琳娜的相机拍下",
+          "bonusSkills": [
+            "自信"
+          ]
+        },
+        {
+          "id": 3,
+          "area": "塔罗牌店",
+          "task": "去做塔罗牌预言时偷底牌",
+          "bonusSkills": [
+            "亲密",
+            "体贴"
+          ]
+        },
+        {
+          "id": 4,
+          "area": "人偶之家",
+          "task": "假扮成人偶吓唬幽灵们",
+          "bonusSkills": [
+            "迟钝"
+          ]
+        }
+      ]
     },
     {
       "name": "魔女王国",

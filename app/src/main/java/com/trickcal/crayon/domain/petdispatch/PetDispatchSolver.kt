@@ -179,14 +179,15 @@ object PetDispatchSolver {
                 return
             }
 
-            val ownedMask = team
+            val ownedIds = team
                 .filterNot(CandidatePet::isBorrowed)
-                .fold(0L) { mask, candidatePet -> mask or candidatePet.pet.id.toOwnedMask() }
+                .map { it.pet.id }
+                .toSet()
             val score = team.sumOf { pet -> petTaskScores.getValue(pet.pet.id).getValue(task.id) }
             val rewardTier = PetDispatchRewardTier.fromScore(score)
             val candidate = TaskCandidate(
                 team = team,
-                ownedMask = ownedMask,
+                ownedIds = ownedIds,
                 borrowedCount = borrowedCount,
                 petCount = team.size,
                 score = score,
@@ -195,7 +196,7 @@ object PetDispatchSolver {
             )
 
             val signature = CandidateSignature(
-                ownedMask = ownedMask,
+                ownedIds = ownedIds,
                 borrowedCount = borrowedCount,
                 petCount = team.size,
             )
@@ -271,14 +272,14 @@ object PetDispatchSolver {
 
         fun dfs(
             taskIndex: Int,
-            usedOwnedMask: Long,
+            usedOwnedIds: Set<Int>,
             borrowedTotal: Int,
         ): Boolean {
             if (taskIndex == orderedTasks.size) {
                 return true
             }
 
-            val state = SearchState(taskIndex, usedOwnedMask, borrowedTotal)
+            val state = SearchState(taskIndex, usedOwnedIds, borrowedTotal)
             if (!failedStates.add(state)) {
                 return false
             }
@@ -288,12 +289,12 @@ object PetDispatchSolver {
                 if (borrowedTotal + candidate.borrowedCount > maxTotalBorrowed) {
                     continue
                 }
-                if ((candidate.ownedMask and usedOwnedMask) != 0L) {
+                if (candidate.ownedIds.any { it in usedOwnedIds }) {
                     continue
                 }
 
                 chosenPairs[taskIndex] = ChosenPair(taskEntry, candidate)
-                if (dfs(taskIndex + 1, usedOwnedMask or candidate.ownedMask, borrowedTotal + candidate.borrowedCount)) {
+                if (dfs(taskIndex + 1, usedOwnedIds + candidate.ownedIds, borrowedTotal + candidate.borrowedCount)) {
                     return true
                 }
             }
@@ -301,7 +302,7 @@ object PetDispatchSolver {
             return false
         }
 
-        if (!dfs(0, 0L, 0)) {
+        if (!dfs(0, emptySet(), 0)) {
             return null
         }
 
@@ -337,7 +338,7 @@ object PetDispatchSolver {
 
         fun dfs(
             taskIndex: Int,
-            usedOwnedMask: Long,
+            usedOwnedIds: Set<Int>,
             borrowedTotal: Int,
             tierSummary: PetDispatchTierSummary,
             totalPets: Int,
@@ -355,7 +356,7 @@ object PetDispatchSolver {
                 return
             }
 
-            val state = SearchState(taskIndex, usedOwnedMask, borrowedTotal)
+            val state = SearchState(taskIndex, usedOwnedIds, borrowedTotal)
             val prefixObjective = PrefixObjective(
                 tierSummary = tierSummary,
                 totalPets = totalPets,
@@ -384,14 +385,14 @@ object PetDispatchSolver {
                 if (nextBorrowedTotal > maxTotalBorrowed) {
                     continue
                 }
-                if ((candidate.ownedMask and usedOwnedMask) != 0L) {
+                if (candidate.ownedIds.any { it in usedOwnedIds }) {
                     continue
                 }
 
                 chosenPairs[taskIndex] = ChosenPair(taskEntry, candidate)
                 dfs(
                     taskIndex = taskIndex + 1,
-                    usedOwnedMask = usedOwnedMask or candidate.ownedMask,
+                    usedOwnedIds = usedOwnedIds + candidate.ownedIds,
                     borrowedTotal = nextBorrowedTotal,
                     tierSummary = tierSummary + candidate.tierSummary,
                     totalPets = totalPets + candidate.petCount,
@@ -402,7 +403,7 @@ object PetDispatchSolver {
 
         dfs(
             taskIndex = 0,
-            usedOwnedMask = 0L,
+            usedOwnedIds = emptySet(),
             borrowedTotal = 0,
             tierSummary = PetDispatchTierSummary(),
             totalPets = 0,
@@ -534,14 +535,14 @@ object PetDispatchSolver {
     )
 
     private data class CandidateSignature(
-        val ownedMask: Long,
+        val ownedIds: Set<Int>,
         val borrowedCount: Int,
         val petCount: Int,
     )
 
     private data class TaskCandidate(
         val team: List<CandidatePet>,
-        val ownedMask: Long,
+        val ownedIds: Set<Int>,
         val borrowedCount: Int,
         val petCount: Int,
         val score: Int,
@@ -584,7 +585,7 @@ object PetDispatchSolver {
 
     private data class SearchState(
         val taskIndex: Int,
-        val usedOwnedMask: Long,
+        val usedOwnedIds: Set<Int>,
         val borrowedTotal: Int,
     )
 
@@ -650,5 +651,3 @@ object PetDispatchSolver {
             get() = tierSummary.fourthCount
     }
 }
-
-private fun Int.toOwnedMask(): Long = 1L shl (this - 1)

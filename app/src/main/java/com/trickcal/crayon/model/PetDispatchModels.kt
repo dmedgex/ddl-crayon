@@ -37,7 +37,7 @@ enum class PetDispatchRewardTier(
         fun fromScore(score: Int): PetDispatchRewardTier =
             when {
                 score > 37 -> SPECIAL
-                score > 25 -> FIRST
+                score >= 25 -> FIRST
                 score > 13 -> SECOND
                 score > 5 -> THIRD
                 score > 1 -> FOURTH
